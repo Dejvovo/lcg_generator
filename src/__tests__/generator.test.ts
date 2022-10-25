@@ -54,7 +54,17 @@ describe("Tests", () => {
         expect(condition3(9, 2**32)).toBe(true);
     })
 
-    it("generates LCG", () => {
-        expect(generateLCG(undefined, 12345, 2**32)).toBe({})
+    it("generates correct LCG", () => {
+        // Does not hold condition1.
+        expect(() => generateLCG(3, 3*5*17*23, 3*7*19)).toThrowError();
+        expect(() => generateLCG(3, 6, 8)).toThrowError();
+
+        // Does not hold condition2.
+        expect(() => generateLCG(4, 12345, 2)).toThrowError();
+        expect(() => generateLCG(2*3*5+1, 12345, 2*3*5*7)).toThrowError();
+
+        // Does not hold condition3.
+        expect(() => generateLCG(4, 12345, 2**2)).toThrowError();
+        expect(() => generateLCG(8, 12345, 2**32)).toThrowError();
     })
 })
