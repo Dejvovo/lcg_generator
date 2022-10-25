@@ -47,7 +47,7 @@ export const condition3 = (A: number, M: number) => M % 4 === 0 ? (A-1 % 4) : tr
 
 const randomInt = (min: number, max: number) => Math.random() * (max - min) + min;
 
-const generateTriplet = (a?: number, c?: number, m?: number) => {
+const generateTriplet = (a?: number, c?: number, m?: number): ILCG => {
     const M = m || randomInt(10**3, 10**5);
     const A = a || randomInt(0, M);
     const C = c || randomInt(0, M);
@@ -55,13 +55,19 @@ const generateTriplet = (a?: number, c?: number, m?: number) => {
     return {A, C, M};
 }
 
-export const generateLCG = (a?: number, c?: number, m?: number) => {   
+export interface ILCG {
+    A: number;
+    C: number;
+    M: number;
+}
+
+export const generateLCG = (a?: number, c?: number, m?: number): ILCG=> {   
     let triplet = generateTriplet(a, c, m);
     let iterations = 0;
     let primeFactorsOfM = m ? primeFactors(m) : undefined;
 
     while(true) {
-        if(iterations > 10**8) throw new Error("Sry too much iterations");
+        if(iterations > 10**8) throw new Error("Bohužel pro zadaný vstup se nepodařilo uhodnout všechny parametry.");
         iterations++;
 
         if(!condition3(triplet.A, triplet.M)) {

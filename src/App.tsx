@@ -1,19 +1,25 @@
-import { Button, Checkbox, Col, Form, Input, InputNumber, Layout, List, Progress, Row, Select } from 'antd';
+import { Alert, Button, Checkbox, Col, Form, Input, InputNumber, Layout, List, Progress, Row, Select, Table } from 'antd';
 import { Content, Footer } from 'antd/lib/layout/layout';
 import React, { useState } from 'react';
-import { generateLCG } from './generator/generator';
+import { generateLCG, ILCG } from './generator/generator';
 
 function App() {
   const [lcgCount, setLcgCount] = useState(5);
-  const [lcgParams, setLcgParams] = useState<string[]>([]);
+  const [lcgParams, setLcgParams] = useState<ILCG[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>();
 
-  const generate = (n: number) => (values: {C? : number, M: number}) => {
+  const generate = (n: number) => async(values: {C? : number, M: number}) => {
     setLcgParams([]);
+    setErrorMessage('');
 
     for(let i = 0; i< n; i++) {
-      const lcg = generateLCG(undefined, values.C, values.M);
-      setLcgParams((prev) => [...prev, JSON.stringify(lcg)]);
-      console.log(lcgParams);
+      try {
+        const lcg = generateLCG(undefined, values.C, values.M);
+        setLcgParams((prev) => [...prev, lcg]);
+        console.log(lcgParams);
+      } catch (e) {
+        if(e instanceof Error) setErrorMessage(e.message)
+      }
     }
   }
 
@@ -65,11 +71,15 @@ function App() {
       <Footer>
       </Footer></Layout>
       <Progress percent={(lcgParams.length / lcgCount)*100}></Progress>
+      {errorMessage && <Alert message={errorMessage} type="error"/>}
 
-      <List>
-            {lcgParams.map((lcgParam) => <List.Item>{lcgParam}</List.Item>)}
-        </List>
-
+      {lcgParams.length > 0 && 
+      <Table dataSource={lcgParams.map((o, index) => ({...o, index: index+1}))}>
+        <Table.Column key='index' title='ID' dataIndex='index'></Table.Column>
+        <Table.Column key='A' title='A' dataIndex='A'></Table.Column>
+        <Table.Column key='C' title='C' dataIndex='C'></Table.Column>
+        <Table.Column key='M' title='M' dataIndex='M'></Table.Column>
+      </Table>}
   </>
   );
 }
