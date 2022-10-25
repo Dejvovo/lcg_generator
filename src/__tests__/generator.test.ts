@@ -1,4 +1,4 @@
-import { generateLCG, isDivisibleByFactors, primeFactors } from "../generator/generator";
+import { condition1, condition2, condition3, generateLCG, isDivisibleByFactors, primeFactors } from "../generator/generator";
 
 describe("Tests", () => {
     const x: number[] = [];
@@ -23,6 +23,36 @@ describe("Tests", () => {
         // 1957092677
         // 2159583557
     });
+
+
+    it("tests condition1", () => {
+        // 1) C a M jsou nesoudělná čísla
+        expect(condition1(2, 5)).toBe(true);
+        expect(condition1(6, 8)).toBe(false);
+        expect(condition1(3*5*17*23, 3*7*19)).toBe(false);
+        expect(condition1(5*17*23, 7*19)).toBe(true);
+    })
+
+    it("tests condition2", () => {
+        // 2) A-1 je dělitelné všemi prvočíselnými faktory M
+        expect(condition2(3, 2)).toBe(true);
+        expect(condition2(4, 2)).toBe(false);
+        expect(condition2(2*3*5+1, 2*3*5)).toBe(true);
+        expect(condition2(2*3*5+1, 2*3*5*7)).toBe(false);
+
+        expect(condition2(1681744473, 2**32)).toBe(true);
+    })
+
+    it("tests condition3", () => {
+        // 3) když M je násobek 4, tak A-1 taky
+        expect(condition3(3, 1)).toBe(true);
+        expect(condition3(4, 1)).toBe(true);
+        expect(condition3(4 + 1, 4)).toBe(true);
+        expect(condition3(4, 4)).toBe(false);
+
+        expect(condition3(8, 2**32)).toBe(false);
+        expect(condition3(9, 2**32)).toBe(true);
+    })
 
     it("generates LCG", () => {
         expect(generateLCG(undefined, 12345, 2**32)).toBe({})
