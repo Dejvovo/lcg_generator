@@ -55,14 +55,16 @@ function App() {
                     },
                     message: "C musí být liché číslo větší než 0."
                   })]}
+                  initialValue={12345}
                 >
                   <InputNumber />
                 </Form.Item>
 
-                <Form.Item label="M:" name="M" rules={[{ required: true }]}>
+                <Form.Item label="M:" name="M" rules={[{ required: true }]} initialValue={2**32}>
                   <Select>
                     <Select.Option value={2 ** 16}>2**16</Select.Option>
                     <Select.Option value={2 ** 24}>2**24</Select.Option>
+                    <Select.Option value={2 ** 31}>2**31</Select.Option>
                     <Select.Option value={2 ** 32}>2**32</Select.Option>
                   </Select>
                 </Form.Item>
@@ -87,7 +89,7 @@ function App() {
     {errorMessage && <Alert message={errorMessage} type="error" />}
 
     {lcgParams.length > 0 &&
-      <Table dataSource={lcgParams.map((o, index) => ({ ...o, index: index + 1 }))}>
+      <Table size={'small'} dataSource={lcgParams.map((o, index) => ({ ...o, index: index + 1 }))}>
         <Table.Column key='index' title='ID' dataIndex='index'></Table.Column>
         <Table.Column key='A' title='A' dataIndex='A'></Table.Column>
         <Table.Column key='C' title='C' dataIndex='C'></Table.Column>
