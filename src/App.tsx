@@ -1,6 +1,6 @@
-import { Alert, Button, Checkbox, Col, Form, Input, InputNumber, Layout, List, Progress, Result, Row, Select, Spin, Table, Tabs } from 'antd';
+import { Alert, Button, Col, Form, InputNumber, Layout, Result, Row, Select, Spin, Table, Tabs } from 'antd';
 import { Content, Footer } from 'antd/lib/layout/layout';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { condition1, condition2, condition3, generateLCG, ILCG } from './generator/generator';
 
 interface IValidatorResult {
@@ -8,15 +8,58 @@ interface IValidatorResult {
   condition2: boolean;
   condition3: boolean;
 }
+const LCG = (a: number, c: number, m: number) => (seed: number) => {
+  let currX: number | null = null;
+  const next = () => {
+    if (!currX) {
+      currX = seed;
+      return currX;
+    }
+
+    currX = (a * currX + c) % m;
+    return currX;
+  }
+
+  const nextN = (n: number): number[] => {
+    const result: number[] = [];
+    for (let i = 0; i < n; i++) {
+      result.push(next());
+    }
+    return result;
+  }
+
+  return {
+    next, nextN
+  }
+}
+
+
+const PI_test = (values: number[], M: number) => {
+  let ntotal = 0;
+  let inCircle = 0;
+  let piApprox = 0;
+  for (let i = 0; i < values.length; i += 2) {
+    const x1 = values[i];
+    const y1 = values[i + 1];
+    if ((Math.sqrt((x1 / M) * (x1 / M) + (y1 / M) * (y1 / M)) <= 1.0)) inCircle++;
+    ntotal++;
+  }
+  piApprox = 4 * (inCircle / ntotal);
+  return (piApprox);
+}
+
+
+const average = (arr: number[]) => arr.reduce( ( p, c ) => p + c, 0 ) / arr.length;
+
 
 function App() {
-  const [lcgCount, setLcgCount] = useState(5);
+  const [lcgCount, setLcgCount] = useState(10); // Počet trojic, které chci vygenerovat
   const [lcgParams, setLcgParams] = useState<ILCG[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>();
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [validatorResult, setValidatorResult] = useState<IValidatorResult | undefined>(undefined);
 
-  const generate = (n: number) => async (values: { C?: number, M: number }) => {
+  const generateLCGcombinations = (n: number) => async (values: { C?: number, M: number }) => {
     setLcgParams([]);
     setErrorMessage('');
     setIsGenerating(true);
@@ -45,7 +88,7 @@ function App() {
                 <Col span={12} offset={6}>
                   Vstupní parametry LCG generátoru.
                   <Form
-                    onFinish={generate(lcgCount)}
+                    onFinish={generateLCGcombinations(lcgCount)}
                     name="generator"
                     labelCol={{ span: 8 }}
                     wrapperCol={{ span: 16 }}
@@ -114,10 +157,10 @@ function App() {
             wrapperCol={{ span: 16 }}
           >
             <Form.Item rules={[{ required: true }]} label='Parametr A: ' name='A'>
-              <InputNumber  />
+              <InputNumber />
             </Form.Item>
             <Form.Item rules={[{ required: true }]} label='Parametr C: ' name='C'>
-              <InputNumber  />
+              <InputNumber />
             </Form.Item>
             <Form.Item rules={[{ required: true }]} label='Parametr M: ' name='M'>
               <InputNumber />
@@ -129,22 +172,22 @@ function App() {
             {validatorResult && <>
               <Row>
                 <Col span={8}>
-                <Result title='C a M jsou nesoudělná čísla' status={validatorResult.condition1 ? 'success' : 'error'}></Result>
+                  <Result title='C a M jsou nesoudělná čísla' status={validatorResult.condition1 ? 'success' : 'error'}></Result>
                 </Col>
                 <Col span={8}>
-                <Result title='A-1 je dělitelné všemi prvočíselnými faktory M' status={validatorResult.condition2 ? 'success' : 'error'}></Result>
+                  <Result title='A-1 je dělitelné všemi prvočíselnými faktory M' status={validatorResult.condition2 ? 'success' : 'error'}></Result>
                 </Col>
                 <Col span={8}>
-                <Result title='Když M je násobek 4, tak A-1 taky' status={validatorResult.condition3 ? 'success' : 'error'}></Result>
+                  <Result title='Když M je násobek 4, tak A-1 taky' status={validatorResult.condition3 ? 'success' : 'error'}></Result>
                 </Col>
               </Row>
               <Row>
-                  <Col span={8} offset={8} >
-                  <Result 
+                <Col span={8} offset={8} >
+                  <Result
                     title='A, C, M dohromady tvoří dobrý lineární kongruentní generátor.'
                     status={(validatorResult.condition1 && validatorResult.condition2 && validatorResult.condition3) ? 'success' : 'error'}></Result>
-                  </Col>
-                </Row>
+                </Col>
+              </Row>
             </>}
 
           </Form>
@@ -155,11 +198,20 @@ function App() {
     </Layout>
     {errorMessage && <Alert message={errorMessage} type="error" />}
     {lcgParams.length > 0 &&
-      <Table size={'small'} dataSource={lcgParams.map((o, index) => ({ ...o, index: index + 1 }))}>
+      <Table pagination={false} size={'small'} dataSource={lcgParams.map((o, index) => {
+        const smallSampleGenerated = LCG(o.A, o.C, o.M)(1).nextN(15);
+        const bigSampleGenerated = LCG(o.A, o.C, o.M)(1).nextN(5000);
+
+
+        return ({ ...o, index: index + 1, generated_values: smallSampleGenerated.join(',') + "...", pi_test: PI_test(bigSampleGenerated, o.M), average_test: `Průměr vzorku je: ${average(bigSampleGenerated)} a měl by být: ${o.M / 2}`  })
+      })}>
         <Table.Column key='index' title='ID' dataIndex='index'></Table.Column>
         <Table.Column key='A' title='A' dataIndex='A'></Table.Column>
         <Table.Column key='C' title='C' dataIndex='C'></Table.Column>
         <Table.Column key='M' title='M' dataIndex='M'></Table.Column>
+        <Table.Column key='generated_values' title='Generovaný vzorek' dataIndex='generated_values'></Table.Column>
+        <Table.Column key='pi_test' title='Monte carlo odhad čísla PI=3,1415926' dataIndex='pi_test'></Table.Column>
+        <Table.Column key='average_test' title='Průměr' dataIndex='average_test'></Table.Column>
       </Table>}
   </>
   );
