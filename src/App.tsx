@@ -113,13 +113,13 @@ function App() {
             labelCol={{ span: 8 }}
             wrapperCol={{ span: 16 }}
           >
-            <Form.Item label='Parametr A: ' name='A'>
-              <InputNumber />
+            <Form.Item rules={[{ required: true }]} label='Parametr A: ' name='A'>
+              <InputNumber  />
             </Form.Item>
-            <Form.Item label='Parametr C: ' name='C'>
-              <InputNumber />
+            <Form.Item rules={[{ required: true }]} label='Parametr C: ' name='C'>
+              <InputNumber  />
             </Form.Item>
-            <Form.Item label='Parametr M: ' name='M'>
+            <Form.Item rules={[{ required: true }]} label='Parametr M: ' name='M'>
               <InputNumber />
             </Form.Item>
             <Button type="primary" htmlType="submit">
